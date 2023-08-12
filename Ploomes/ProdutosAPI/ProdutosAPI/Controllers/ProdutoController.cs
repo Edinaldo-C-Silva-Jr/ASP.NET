@@ -25,22 +25,70 @@ namespace ProdutosAPI.Controllers
         [HttpGet("{id}", Name = "Get")]
         public async Task<ActionResult> GetProduto(int id)
         {
-            Produto item = await _context.Produtos.FindAsync(id);
+            Produto produto = await _context.Produtos.FindAsync(id);
 
-            if (item == null)
+            if (produto == null)
             {
                 return NotFound();
             }
 
-            return Ok(item);
+            return Ok(produto);
         }
 
         [HttpPost]
-        public async Task<ActionResult> PostProduto(Produto produto)
+        public async Task<ActionResult> PostProduto(ProdutoDTO produtoDTO)
         {
+            Produto produto = new Produto() 
+            { Nome = produtoDTO.Nome, Categoria = produtoDTO.Categoria, Preco = produtoDTO.Preco, Quantidade = produtoDTO.Quantidade };
+
             _context.Produtos.Add(produto);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetProduto), new { id = produto.Id }, produto);
+        }
+
+        [HttpPut]
+        public async Task<ActionResult> PutProduto(int id, ProdutoDTO produtoDTO)
+        {
+            Produto produtoToChange = _context.Produtos.Find(id);
+
+            if (produtoToChange == null || produtoDTO == null)
+            {
+                return NotFound();
+            }
+
+            produtoToChange.Nome = produtoDTO.Nome;
+            produtoToChange.Categoria = produtoDTO.Categoria;
+            produtoToChange.Preco = produtoDTO.Preco;
+            produtoToChange.Quantidade = produtoDTO.Quantidade;
+
+            _context.Entry(produtoToChange).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                return NoContent();
+            }
+
+            return NoContent();
+        }
+
+        [HttpDelete]
+        public async Task<ActionResult> DeleteProduto(int id)
+        {
+            Produto produto = _context.Produtos.Find(id);
+
+            if (produto == null)
+            {
+                return NotFound();
+            }
+
+            _context.Produtos.Remove(produto);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }
