@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProdutosAPI.Context;
 using ProdutosAPI.Models;
+using System.Collections.Generic;
 
 namespace ProdutosAPI.Controllers
 {
@@ -35,9 +36,11 @@ namespace ProdutosAPI.Controllers
         /// <param name="id">Número de identificação do produto.</param>
         /// <returns>Um produto.</returns>
         /// <response code="200">Retorna o produto requisitado.</response>
+        /// <response code="400">Caso o valor do ID fornecido não seja válido.</response>
         /// <response code="404">O produto com o ID fornecido não existe.</response>
         [HttpGet("{id}", Name = "GetOneProduct")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> GetProduto(int id)
         {
@@ -45,10 +48,81 @@ namespace ProdutosAPI.Controllers
 
             if (produto == null)
             {
-                return NotFound();
+                return NotFound("O produto com id" + id + "não existe.");
             }
 
             return Ok(produto);
+        }
+
+        /// <summary>
+        /// Lsita todos os produtos cuja categoria corresponde à categoria fornecida.
+        /// </summary>
+        /// <param name="categoria">O nome da categoria à qual os produtos pertencem.</param>
+        /// <returns>Uma lista de produtos.</returns>
+        /// <response code="200">Retorna todos os produtos encontrados.</response>
+        /// <response code="400">Caso o nome da categoria fornecido não seja válido.</response>
+        [HttpGet("Categoria/{categoria}", Name = "GetProductByCategory")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> GetProdutoCategoria(string categoria)
+        {
+            List<Produto> produtos = await _context.Produtos.ToListAsync();
+            return Ok(produtos.Where(prod => prod.Categoria.ToLower() == categoria.ToLower()));
+        }
+
+        /// <summary>
+        /// Retorna todos os produtos com preço acima do valor especificado.
+        /// </summary>
+        /// <param name="valor">O preço mínimo para os produtos que serão retornados.</param>
+        /// <returns>Uma lista de produtos.</returns>
+        /// <response code="200">Retorna todos os produtos encontrados.</response>
+        /// <response code="400">Caso o valor fornecido não seja válido, ou seja um valor negativo.</response>
+        [HttpGet("Preco/Acima/{valor}", Name = "GetProductAbovePrice")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> GetProdutoAcimaPreco(decimal valor)
+        {
+            if (valor < 0)
+            {
+                return BadRequest("O valor não pode ser negativo");
+            }
+
+            List<Produto> produtos = await _context.Produtos.ToListAsync();
+            return Ok(produtos.Where(prod => prod.Preco >= valor));
+        }
+
+        /// <summary>
+        /// Retorna todos os produtos com preço abaixo do valor especificado.
+        /// </summary>
+        /// <param name="valor">O preço máximo para os produtos que serão retornados.</param>
+        /// <returns>Uma lista de produtos.</returns>
+        /// <response code="200">Retorna todos os produtos encontrados.</response>
+        /// <response code="400">Caso o valor fornecido não seja válido, ou seja um valor negativo.</response>
+        [HttpGet("Preco/Abaixo/{valor}", Name = "GetProductBelowPrice")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> GetProdutoAbaixoPreco(decimal valor)
+        {
+            if (valor < 0)
+            {
+                return BadRequest("O valor não pode ser negativo");
+            }
+
+            List<Produto> produtos = await _context.Produtos.ToListAsync();
+            return Ok(produtos.Where(prod => prod.Preco <= valor));
+        }
+
+        /// <summary>
+        /// Lista todos os produtos atualmente em estoque (quantidade maior que 0)
+        /// </summary>
+        /// <returns>Uma lista de produtos.</returns>
+        /// <response code="200">Retorna todos os produtos encontrados.</response>
+        [HttpGet("/EmEstoque", Name = "GetProductsInStock")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult> GetProdutosEmEstoque()
+        {
+            List<Produto> produtos = await _context.Produtos.ToListAsync();
+            return Ok(produtos.Where(prod => prod.Quantidade > 0));
         }
 
         /// <summary>
@@ -111,9 +185,14 @@ namespace ProdutosAPI.Controllers
         {
             Produto produtoToChange = _context.Produtos.Find(id);
 
-            if (produtoToChange == null || produtoDTO == null)
+            if (produtoToChange == null)
             {
-                return NotFound();
+                return NotFound("O produto com id" + id + "não existe.");
+            }
+
+            if (produtoDTO == null)
+            {
+                return NotFound("O produto fornecido não possui todos os dados necessários.");
             }
 
             produtoToChange.Nome = produtoDTO.Nome;
@@ -122,16 +201,7 @@ namespace ProdutosAPI.Controllers
             produtoToChange.Quantidade = produtoDTO.Quantidade;
 
             _context.Entry(produtoToChange).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch
-            {
-                return NoContent();
-            }
-
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 
@@ -150,7 +220,7 @@ namespace ProdutosAPI.Controllers
 
             if (produto == null)
             {
-                return NotFound();
+                return NotFound("O produto com id" + id + "não existe.");
             }
 
             _context.Produtos.Remove(produto);
