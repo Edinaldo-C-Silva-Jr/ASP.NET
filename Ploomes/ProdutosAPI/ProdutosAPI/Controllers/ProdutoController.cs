@@ -77,7 +77,7 @@ namespace ProdutosAPI.Controllers
         /// <returns>Uma lista de produtos.</returns>
         /// <response code="200">Retorna todos os produtos encontrados.</response>
         /// <response code="400">Caso o valor fornecido não seja válido, ou seja um valor negativo.</response>
-        [HttpGet("Preco/Acima/{valor}", Name = "GetProductAbovePrice")]
+        [HttpGet("PrecoAcima/{valor}", Name = "GetProductAbovePrice")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> GetProdutoAcimaPreco(decimal valor)
@@ -98,7 +98,7 @@ namespace ProdutosAPI.Controllers
         /// <returns>Uma lista de produtos.</returns>
         /// <response code="200">Retorna todos os produtos encontrados.</response>
         /// <response code="400">Caso o valor fornecido não seja válido, ou seja um valor negativo.</response>
-        [HttpGet("Preco/Abaixo/{valor}", Name = "GetProductBelowPrice")]
+        [HttpGet("PrecoAbaixo/{valor}", Name = "GetProductBelowPrice")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> GetProdutoAbaixoPreco(decimal valor)
@@ -117,12 +117,25 @@ namespace ProdutosAPI.Controllers
         /// </summary>
         /// <returns>Uma lista de produtos.</returns>
         /// <response code="200">Retorna todos os produtos encontrados.</response>
-        [HttpGet("/EmEstoque", Name = "GetProductsInStock")]
+        [HttpGet("EmEstoque", Name = "GetProductsInStock")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetProdutosEmEstoque()
         {
             List<Produto> produtos = await _context.Produtos.ToListAsync();
             return Ok(produtos.Where(prod => prod.Quantidade > 0));
+        }
+
+        /// <summary>
+        /// Lista todos os produtos atualmente esgotados (quantidade igual a 0)
+        /// </summary>
+        /// <returns>Uma lista de produtos.</returns>
+        /// <response code="200">Retorna todos os produtos encontrados.</response>
+        [HttpGet("Esgotado", Name = "GetProductsOutOfStock")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult> GetProdutosEsgotados()
+        {
+            List<Produto> produtos = await _context.Produtos.ToListAsync();
+            return Ok(produtos.Where(prod => prod.Quantidade == 0));
         }
 
         /// <summary>
