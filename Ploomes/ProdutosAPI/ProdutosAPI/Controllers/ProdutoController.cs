@@ -12,7 +12,7 @@ namespace ProdutosAPI.Controllers
     public class ProdutoController : ControllerBase
     {
         private readonly ProdutoAPIContext _context;
-
+        
         public ProdutoController(ProdutoAPIContext context)
         {
             _context = context;
@@ -162,6 +162,15 @@ namespace ProdutosAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> PostProduto(ProdutoDTO produtoDTO)
         {
+            if (produtoDTO.Preco < 0)
+            {
+                return BadRequest("O preço deve ser um valor positivo, ou zero.");
+            }
+            if (produtoDTO.Quantidade < 0)
+            {
+                return BadRequest("A quantidade deve ser um valor positivo, ou zero.");
+            }
+
             Produto produto = new Produto()
             { Nome = produtoDTO.Nome, Categoria = produtoDTO.Categoria, Preco = produtoDTO.Preco, Quantidade = produtoDTO.Quantidade };
 
@@ -196,6 +205,15 @@ namespace ProdutosAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> PutProduto(int id, ProdutoDTO produtoDTO)
         {
+            if (produtoDTO.Preco < 0)
+            {
+                return BadRequest("O preço deve ser um valor positivo, ou zero.");
+            }
+            if (produtoDTO.Quantidade < 0)
+            {
+                return BadRequest("A quantidade deve ser um valor positivo, ou zero.");
+            }
+
             Produto produtoToChange = _context.Produtos.Find(id);
 
             if (produtoToChange == null)
