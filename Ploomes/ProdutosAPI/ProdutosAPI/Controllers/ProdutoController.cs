@@ -214,7 +214,7 @@ namespace ProdutosAPI.Controllers
                 return BadRequest("A quantidade deve ser um valor positivo, ou zero.");
             }
 
-            Produto produtoToChange = _context.Produtos.Find(id);
+            Produto produtoToChange = await _context.Produtos.FindAsync(id);
 
             if (produtoToChange == null)
             {
@@ -247,7 +247,7 @@ namespace ProdutosAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> DeleteProduto(int id)
         {
-            Produto produto = _context.Produtos.Find(id);
+            Produto produto = await _context.Produtos.FindAsync(id);
 
             if (produto == null)
             {
