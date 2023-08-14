@@ -8,5 +8,6 @@ namespace ProdutosAPI.Context
         public ProdutoAPIContext(DbContextOptions<ProdutoAPIContext> options) : base(options)
         { }
         public DbSet<Produto> Produtos { get; set; }
+        public DbSet<Categoria> Categorias { get; set; }
     }
 }

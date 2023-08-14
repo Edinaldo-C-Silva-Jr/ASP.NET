@@ -64,10 +64,10 @@ namespace ProdutosAPI.Controllers
         [HttpGet("Categoria/{categoria}", Name = "GetProductByCategory")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> GetProdutoCategoria(string categoria)
+        public async Task<ActionResult> GetProdutoCategoria(int categoria)
         {
             List<Produto> produtos = await _context.Produtos.ToListAsync();
-            return Ok(produtos.Where(prod => prod.Categoria.ToLower() == categoria.ToLower()));
+            return Ok(produtos.Where(prod => prod.CategoriaID == categoria));
         }
 
         /// <summary>
@@ -172,7 +172,7 @@ namespace ProdutosAPI.Controllers
             }
 
             Produto produto = new Produto()
-            { Nome = produtoDTO.Nome, Categoria = produtoDTO.Categoria, Preco = produtoDTO.Preco, Quantidade = produtoDTO.Quantidade };
+            { Nome = produtoDTO.Nome, Preco = produtoDTO.Preco, Quantidade = produtoDTO.Quantidade };
 
             _context.Produtos.Add(produto);
             await _context.SaveChangesAsync();
@@ -227,7 +227,7 @@ namespace ProdutosAPI.Controllers
             }
 
             produtoToChange.Nome = produtoDTO.Nome;
-            produtoToChange.Categoria = produtoDTO.Categoria;
+            //produtoToChange.Categoria = produtoDTO.Categoria;
             produtoToChange.Preco = produtoDTO.Preco;
             produtoToChange.Quantidade = produtoDTO.Quantidade;
 
