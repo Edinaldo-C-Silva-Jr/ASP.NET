@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace ProdutosAPI.Models
 {
     /// <summary>
-    /// Classe que representa um produto com todos os campos. Usada para criar a tabela do banco de dados.
+    /// Classe que representa um produto com todos os campos. Usada para criar a tabela e interagir com o banco de dados.
     /// </summary>
     public class Produto
     {
@@ -27,18 +27,19 @@ namespace ProdutosAPI.Models
         public decimal Preco { get; set; }
 
         /// <summary>
-        /// A quantidade atualmente disponível do produto.
+        /// A quantidade do produto atualmente disponível em estoque.
         /// </summary>
         [Required]
         public int Quantidade { get; set; }
 
         /// <summary>
         /// O número de identificação da categoria à qual o produto pertence.
-        /// Foreign Key.
         /// </summary>
+        // Foreign Key
         [Required]
         public int CategoriaID { get; set; }
 
+        // Reference Navigation
         [JsonIgnore]
         public Categoria CategoriaPai { get; set; }
     }

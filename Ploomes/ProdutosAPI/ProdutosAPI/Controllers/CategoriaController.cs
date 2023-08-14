@@ -7,6 +7,9 @@ using ProdutosAPI.Models;
 
 namespace ProdutosAPI.Controllers
 {
+    /// <summary>
+    /// O controlador dos métodos HTTP para a entidade de Categoria.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     [Produces("application/json")]
@@ -19,7 +22,15 @@ namespace ProdutosAPI.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// Lista todas as categorias existentes na base de dados.
+        /// </summary>
+        /// <returns>Uma lista de categorias.</returns>
+        /// <response code="200">Retorna todas as categorias encontradas.</response>
+        /// <response code="404">Caso não existam categorias na base de dados.</response>
         [HttpGet(Name = "GetAllCategories")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> GetTodasCategorias()
         {
             List<CategoriaDTO_GET> categorias = await _context.Categorias.
@@ -32,7 +43,18 @@ namespace ProdutosAPI.Controllers
             return Ok(categorias);
         }
 
+        /// <summary>
+        /// Retorna uma categoria, que corresponde ao ID fornecido.
+        /// </summary>
+        /// <param name="id">Número de identificação da categoria.</param>
+        /// <returns>Uma categoria.</returns>
+        /// <response code="200">Retorna a categoria requisitada.</response>
+        /// <response code="400">Caso o valor do ID fornecido não seja válido.</response>
+        /// <response code="404">A categoria com o ID fornecido não existe.</response>
         [HttpGet("{id}", Name = "GetOneCategory")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> GetCategoria(int id)
         {
             Categoria categoria = await _context.Categorias.FindAsync(id);
@@ -46,7 +68,25 @@ namespace ProdutosAPI.Controllers
             return Ok(categoriaExibir);
         }
 
+        /// <summary>
+        /// Cadastra uma categoria com o nome fornecido.
+        /// </summary>
+        /// <param name="categoriaDTO">Uma categoria, contendo um nome para cadastro.</param>
+        /// <returns>O link para a nova categoria.</returns>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     POST /Categoria
+        ///     {
+        ///        "nome": "Sucos"
+        ///     }
+        ///
+        /// </remarks>
+        /// <response code="201">Retorna a categoria recém-criada.</response>
+        /// <response code="400">Caso a categoria tenha dados faltando.</response>
         [HttpPost(Name = "PostCategory")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> PostCategoria (CategoriaDTO_POST categoriaDTO)
         {
             if (categoriaDTO == null)
@@ -60,7 +100,27 @@ namespace ProdutosAPI.Controllers
             return CreatedAtAction(nameof(GetCategoria), new { id = categoria.Id }, categoria);
         }
 
+        /// <summary>
+        /// Atualiza a categoria que corresponde ao ID, utilizando o nome fornecido.
+        /// </summary>
+        /// <param name="id">Número de identificação da categoria.</param>
+        /// <param name="categoriaDTO">Uma categoria, contendo um nome para a atualização.</param>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     PUT /Categoria
+        ///     {
+        ///        "nome": "Sucos"
+        ///     }
+        ///
+        /// </remarks>
+        /// <response code="204">A categoria foi alterada com sucesso.</response>
+        /// <response code="400">Caso a categoria tenha dados faltando.</response>
+        /// <response code="404">A categoria com o ID fornecido não existe.</response>
         [HttpPut("{id}", Name = "PutCategory")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> PutCategoria(int id, CategoriaDTO_POST categoriaDTO)
         {
             Categoria categoriaUpdate = await _context.Categorias.FindAsync(id);

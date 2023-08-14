@@ -20,7 +20,7 @@ namespace ProdutosAPI.Models
         public decimal Preco { get; set; }
 
         /// <summary>
-        /// A quantidade atualmente disponível do produto.
+        /// A quantidade do produto atualmente disponível em estoque.
         /// </summary>
         [Required]
         public int Quantidade { get; set; }

@@ -6,6 +6,9 @@ using System.Collections.Generic;
 
 namespace ProdutosAPI.Controllers
 {
+    /// <summary>
+    /// O controlador dos métodos HTTP para a entidade de Produto.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     [Produces("application/json")]
@@ -21,10 +24,12 @@ namespace ProdutosAPI.Controllers
         /// <summary>
         /// Lista todos os produtos existentes na base de dados.
         /// </summary>
-        /// <returns>Uma lista de produtos</returns>
+        /// <returns>Uma lista de produtos.</returns>
         /// <response code="200">Retorna todos os produtos encontrados.</response>
+        /// <response code="404">Caso não exista nenhum produto na base de dados.</response>
         [HttpGet(Name = "GetAllProducts")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> GetTodosProdutos()
         {
             List<ProdutoDTO_GET> produtos = await _context.Produtos.Include(p => p.CategoriaPai).
@@ -74,24 +79,26 @@ namespace ProdutosAPI.Controllers
         }
 
         /// <summary>
-        /// Lsita todos os produtos cuja categoria corresponde à categoria fornecida.
+        /// Lista todos os produtos cuja categoria corresponde à categoria do ID fornecido.
         /// </summary>
-        /// <param name="categoria">O número de identificação da categoria à qual os produtos pertencem.</param>
+        /// <param name="categoriaID">O número de identificação da categoria à qual os produtos pertencem.</param>
         /// <returns>Uma lista de produtos.</returns>
         /// <response code="200">Retorna todos os produtos encontrados.</response>
-        /// <response code="400">Caso o nome da categoria fornecido não seja válido.</response>
-        [HttpGet("Categoria/{categoria}", Name = "GetProductByCategory")]
+        /// <response code="400">Caso o valor do ID fornecido não seja válido.</response>
+        /// <response code="404">Caso a categoria não exista, ou caso a categoria não tenha produtos cadastrados.</response>
+        [HttpGet("Categoria/{categoriaID}", Name = "GetProductByCategory")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> GetProdutoCategoria(int categoria)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> GetProdutoCategoria(int categoriaID)
         {
-            if (await _context.Categorias.FindAsync(categoria) == null)
+            if (await _context.Categorias.FindAsync(categoriaID) == null)
             {
-                return NotFound("A categoria com id " + categoria + " não existe");
+                return NotFound("A categoria com id " + categoriaID + " não existe");
             }
 
             List<ProdutoDTO_GET> produtos = await _context.Produtos.Include(p => p.CategoriaPai).
-                Where(prod => prod.CategoriaID == categoria).
+                Where(prod => prod.CategoriaID == categoriaID).
                 Select(p => new ProdutoDTO_GET()
                 {
                     Id = p.Id,
@@ -111,24 +118,30 @@ namespace ProdutosAPI.Controllers
         }
 
         /// <summary>
-        /// Retorna todos os produtos com preço acima do valor especificado.
+        /// Retorna todos os produtos com preço acima ou igual ao valor especificado.
         /// </summary>
-        /// <param name="valor">O preço mínimo para os produtos que serão retornados.</param>
+        /// <param name="valorMinimo">O preço mínimo para os produtos que serão retornados.</param>
         /// <returns>Uma lista de produtos.</returns>
         /// <response code="200">Retorna todos os produtos encontrados.</response>
         /// <response code="400">Caso o valor fornecido não seja válido, ou seja um valor negativo.</response>
-        [HttpGet("PrecoAcima/{valor}", Name = "GetProductAbovePrice")]
+        /// <response code="404">Caso não haja produtos nesta faixa de preço.</response>
+        [HttpGet("PrecoAcima/{valorMinimo}", Name = "GetProductAbovePrice")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> GetProdutoAcimaPreco(decimal valor)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> GetProdutoAcimaPreco(decimal valorMinimo)
         {
-            if (valor < 0)
+            if (valorMinimo < 0)
             {
                 return BadRequest("O valor não pode ser negativo");
             }
+            if (valorMinimo > 9999999999999999)
+            {
+                return BadRequest("O valor não pode ser acima de 9999999999999999");
+            }
 
             List<ProdutoDTO_GET> produtos = await _context.Produtos.Include(p => p.CategoriaPai).
-                Where(prod => prod.Preco >= valor).
+                Where(prod => prod.Preco >= valorMinimo).
                 Select(p => new ProdutoDTO_GET()
                 {
                     Id = p.Id,
@@ -148,24 +161,30 @@ namespace ProdutosAPI.Controllers
         }
 
         /// <summary>
-        /// Retorna todos os produtos com preço abaixo do valor especificado.
+        /// Retorna todos os produtos com preço abaixo ou igual ao valor especificado.
         /// </summary>
-        /// <param name="valor">O preço máximo para os produtos que serão retornados.</param>
+        /// <param name="valorMaximo">O preço máximo para os produtos que serão retornados.</param>
         /// <returns>Uma lista de produtos.</returns>
         /// <response code="200">Retorna todos os produtos encontrados.</response>
         /// <response code="400">Caso o valor fornecido não seja válido, ou seja um valor negativo.</response>
-        [HttpGet("PrecoAbaixo/{valor}", Name = "GetProductBelowPrice")]
+        /// <response code="404">Caso não haja produtos nesta faixa de preço.</response>
+        [HttpGet("PrecoAbaixo/{valorMaximo}", Name = "GetProductBelowPrice")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> GetProdutoAbaixoPreco(decimal valor)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> GetProdutoAbaixoPreco(decimal valorMaximo)
         {
-            if (valor < 0)
+            if (valorMaximo < 0)
             {
                 return BadRequest("O valor não pode ser negativo");
             }
+            if (valorMaximo > 9999999999999999)
+            {
+                return BadRequest("O valor não pode ser acima de 9999999999999999");
+            }
 
             List<ProdutoDTO_GET> produtos = await _context.Produtos.Include(p => p.CategoriaPai).
-                Where(prod => prod.Preco <= valor).
+                Where(prod => prod.Preco <= valorMaximo).
                 Select(p => new ProdutoDTO_GET()
                 {
                     Id = p.Id,
@@ -189,8 +208,10 @@ namespace ProdutosAPI.Controllers
         /// </summary>
         /// <returns>Uma lista de produtos.</returns>
         /// <response code="200">Retorna todos os produtos encontrados.</response>
+        /// <response code="404">Não há produtos atualmente em estoque..</response>
         [HttpGet("EmEstoque/", Name = "GetProductsInStock")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> GetProdutosEmEstoque()
         {
             List<ProdutoDTO_GET> produtos = await _context.Produtos.Include(p => p.CategoriaPai).
@@ -218,8 +239,10 @@ namespace ProdutosAPI.Controllers
         /// </summary>
         /// <returns>Uma lista de produtos.</returns>
         /// <response code="200">Retorna todos os produtos encontrados.</response>
+        /// <response code="404">Não há produtos atualmente esgotados.</response>
         [HttpGet("Esgotado", Name = "GetProductsOutOfStock")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> GetProdutosEsgotados()
         {
             List<ProdutoDTO_GET> produtos = await _context.Produtos.Include(p => p.CategoriaPai).
@@ -246,24 +269,26 @@ namespace ProdutosAPI.Controllers
         /// Cadastra um produto com os dados fornecidos.
         /// </summary>
         /// <param name="produtoDTO">Um produto, com todos os dados necessários para o cadastro.</param>
-        /// <returns>O link para o produto.</returns>
+        /// <returns>O link para o novo produto.</returns>
         /// <remarks>
         /// Sample request:
         ///
         ///     POST /Produto
         ///     {
         ///        "nome": "Suco de Uva",
-        ///        "categoria": "Sucos",
         ///        "preco": 5.49,
-        ///        "quantidade": 100
+        ///        "quantidade": 100,
+        ///        "categoria": 1
         ///     }
         ///
         /// </remarks>
         /// <response code="201">Retorna o produto recém-criado.</response>
-        /// <response code="400">Caso o produto seja nulo, ou tenha dados faltando.</response>
+        /// <response code="400">Caso o produto tenha dados faltando. Caso o preço ou a quantidade sejam negativos. Caso o preço seja um valor muito grande.</response>
+        /// <response code="404">Caso a categoria com o ID fornecido não exista.</response>
         [HttpPost(Name = "PostProduct")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> PostProduto(ProdutoDTO_POST produtoDTO)
         {
             if (produtoDTO == null)
@@ -273,6 +298,10 @@ namespace ProdutosAPI.Controllers
             if (produtoDTO.Preco < 0)
             {
                 return BadRequest("O preço deve ser um valor positivo, ou zero.");
+            }
+            if (produtoDTO.Preco > 9999999999999999)
+            {
+                return BadRequest("O preço não pode ser acima de 9999999999999999");
             }
             if (produtoDTO.Quantidade < 0)
             {
@@ -296,22 +325,22 @@ namespace ProdutosAPI.Controllers
         /// Atualiza o produto que corresponde ao ID, utilizando as novas informações fornecidas.
         /// </summary>
         /// <param name="id">Número de identificação do produto.</param>
-        /// <param name="produtoDTO">Um produto, com todos os dados necessários para o cadastro.</param>
+        /// <param name="produtoDTO">Um produto, com todos os dados necessários para a atualização.</param>
         /// <remarks>
         /// Sample request:
         ///
         ///     PUT /Produto
         ///     {
-        ///        "nome": "Suco de Uva",
-        ///        "categoria": "Sucos",
-        ///        "preco": 5.49,
-        ///        "quantidade": 50
+        ///        "nome": "Suco de Morango",
+        ///        "preco": 4.99,
+        ///        "quantidade": 200,
+        ///        "categoria": 1
         ///     }
         ///
         /// </remarks>
         /// <response code="204">O produto foi alterado com sucesso.</response>
-        /// <response code="400">Caso o produto seja nulo, ou tenha dados faltando.</response>
-        /// <response code="404">O produto com o ID fornecido não existe.</response>
+        /// <response code="400">Caso o produto tenha dados faltando. Caso o preço ou a quantidade sejam negativos. Caso o preço seja um valor muito grande.</response>
+        /// <response code="404">Caso a categoria com o ID fornecido não exista, ou o produto com o ID fornecido não exista.</response>
         [HttpPut("{id}", Name = "PutProduct")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -325,6 +354,10 @@ namespace ProdutosAPI.Controllers
             if (produtoDTO.Preco < 0)
             {
                 return BadRequest("O preço deve ser um valor positivo, ou zero.");
+            }
+            if (produtoDTO.Preco > 9999999999999999)
+            {
+                return BadRequest("O preço não pode ser acima de 9999999999999999");
             }
             if (produtoDTO.Quantidade < 0)
             {
