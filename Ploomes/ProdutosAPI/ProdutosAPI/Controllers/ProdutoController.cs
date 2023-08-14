@@ -160,7 +160,7 @@ namespace ProdutosAPI.Controllers
         [HttpPost(Name = "PostProduct")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> PostProduto(ProdutoDTO produtoDTO)
+        public async Task<ActionResult> PostProduto(ProdutoDTO_POST produtoDTO)
         {
             if (produtoDTO.Preco < 0)
             {
@@ -203,7 +203,7 @@ namespace ProdutosAPI.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> PutProduto(int id, ProdutoDTO produtoDTO)
+        public async Task<ActionResult> PutProduto(int id, ProdutoDTO_POST produtoDTO)
         {
             if (produtoDTO.Preco < 0)
             {
