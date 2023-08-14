@@ -8,6 +8,8 @@
 
         public decimal Preco { get; set; }
 
+        public int Quantidade { get; set; }
+
         public int CategoriaID { get; set; }
 
         public string CategoriaNome { get; set; }

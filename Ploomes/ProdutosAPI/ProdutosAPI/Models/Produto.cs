@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace ProdutosAPI.Models
 {
@@ -38,6 +39,7 @@ namespace ProdutosAPI.Models
         [Required]
         public int CategoriaID { get; set; }
 
+        [JsonIgnore]
         public Categoria CategoriaPai { get; set; }
     }
 }

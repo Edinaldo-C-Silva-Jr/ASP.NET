@@ -27,7 +27,23 @@ namespace ProdutosAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetTodosProdutos()
         {
-            return Ok(await _context.Produtos.ToListAsync());
+            List<ProdutoDTO_GET> produtos = await _context.Produtos.Include(p => p.CategoriaPai).
+                Select(p => new ProdutoDTO_GET() 
+                {
+                    Id = p.Id,
+                    Nome = p.Nome,
+                    Preco = p.Preco,
+                    Quantidade = p.Quantidade,
+                    CategoriaID = p.CategoriaID,
+                    CategoriaNome = p.CategoriaPai.Nome
+                }).ToListAsync();
+
+            if (produtos.Count == 0)
+            {
+                return NotFound("Não há produtos cadastrados.");
+            }
+
+            return Ok(produtos);
         }
 
         /// <summary>
@@ -44,20 +60,23 @@ namespace ProdutosAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> GetProduto(int id)
         {
-            Produto produto = await _context.Produtos.FindAsync(id);
+            Produto produto = await _context.Produtos.Include(p => p.CategoriaPai).SingleOrDefaultAsync(p => p.Id == id);
 
             if (produto == null)
             {
                 return NotFound("O produto com id " + id + " não existe.");
             }
 
-            return Ok(produto);
+            ProdutoDTO_GET produtoExibir = new ProdutoDTO_GET()
+            { Id = produto.Id, Nome = produto.Nome, Preco = produto.Preco, Quantidade = produto.Quantidade, CategoriaID = produto.CategoriaID, CategoriaNome = produto.CategoriaPai.Nome };
+
+            return Ok(produtoExibir);
         }
 
         /// <summary>
         /// Lsita todos os produtos cuja categoria corresponde à categoria fornecida.
         /// </summary>
-        /// <param name="categoria">O nome da categoria à qual os produtos pertencem.</param>
+        /// <param name="categoria">O número de identificação da categoria à qual os produtos pertencem.</param>
         /// <returns>Uma lista de produtos.</returns>
         /// <response code="200">Retorna todos os produtos encontrados.</response>
         /// <response code="400">Caso o nome da categoria fornecido não seja válido.</response>
@@ -66,8 +85,29 @@ namespace ProdutosAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> GetProdutoCategoria(int categoria)
         {
-            List<Produto> produtos = await _context.Produtos.ToListAsync();
-            return Ok(produtos.Where(prod => prod.CategoriaID == categoria));
+            if (await _context.Categorias.FindAsync(categoria) == null)
+            {
+                return NotFound("A categoria com id " + categoria + " não existe");
+            }
+
+            List<ProdutoDTO_GET> produtos = await _context.Produtos.Include(p => p.CategoriaPai).
+                Where(prod => prod.CategoriaID == categoria).
+                Select(p => new ProdutoDTO_GET()
+                {
+                    Id = p.Id,
+                    Nome = p.Nome,
+                    Preco = p.Preco,
+                    Quantidade = p.Quantidade,
+                    CategoriaID = p.CategoriaID,
+                    CategoriaNome = p.CategoriaPai.Nome
+                }).ToListAsync();
+
+            if (produtos.Count == 0)
+            {
+                return NotFound("Não há produtos cadastrados nesta categoria.");
+            }
+
+            return Ok(produtos);
         }
 
         /// <summary>
@@ -87,8 +127,24 @@ namespace ProdutosAPI.Controllers
                 return BadRequest("O valor não pode ser negativo");
             }
 
-            List<Produto> produtos = await _context.Produtos.ToListAsync();
-            return Ok(produtos.Where(prod => prod.Preco >= valor));
+            List<ProdutoDTO_GET> produtos = await _context.Produtos.Include(p => p.CategoriaPai).
+                Where(prod => prod.Preco >= valor).
+                Select(p => new ProdutoDTO_GET()
+                {
+                    Id = p.Id,
+                    Nome = p.Nome,
+                    Preco = p.Preco,
+                    Quantidade = p.Quantidade,
+                    CategoriaID = p.CategoriaID,
+                    CategoriaNome = p.CategoriaPai.Nome
+                }).ToListAsync();
+
+            if (produtos.Count == 0)
+            {
+                return NotFound("Não há produtos acima desta faixa de preço.");
+            }
+
+            return Ok(produtos);
         }
 
         /// <summary>
@@ -108,8 +164,24 @@ namespace ProdutosAPI.Controllers
                 return BadRequest("O valor não pode ser negativo");
             }
 
-            List<Produto> produtos = await _context.Produtos.ToListAsync();
-            return Ok(produtos.Where(prod => prod.Preco <= valor));
+            List<ProdutoDTO_GET> produtos = await _context.Produtos.Include(p => p.CategoriaPai).
+                Where(prod => prod.Preco <= valor).
+                Select(p => new ProdutoDTO_GET()
+                {
+                    Id = p.Id,
+                    Nome = p.Nome,
+                    Preco = p.Preco,
+                    Quantidade = p.Quantidade,
+                    CategoriaID = p.CategoriaID,
+                    CategoriaNome = p.CategoriaPai.Nome
+                }).ToListAsync();
+
+            if (produtos.Count == 0)
+            {
+                return NotFound("Não há produtos abaixo desta faixa de preço.");
+            }
+
+            return Ok(produtos);
         }
 
         /// <summary>
@@ -117,12 +189,28 @@ namespace ProdutosAPI.Controllers
         /// </summary>
         /// <returns>Uma lista de produtos.</returns>
         /// <response code="200">Retorna todos os produtos encontrados.</response>
-        [HttpGet("EmEstoque", Name = "GetProductsInStock")]
+        [HttpGet("EmEstoque/", Name = "GetProductsInStock")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetProdutosEmEstoque()
         {
-            List<Produto> produtos = await _context.Produtos.ToListAsync();
-            return Ok(produtos.Where(prod => prod.Quantidade > 0));
+            List<ProdutoDTO_GET> produtos = await _context.Produtos.Include(p => p.CategoriaPai).
+                Where(prod => prod.Quantidade > 0).
+                Select(p => new ProdutoDTO_GET()
+                {
+                    Id = p.Id,
+                    Nome = p.Nome,
+                    Preco = p.Preco,
+                    Quantidade = p.Quantidade,
+                    CategoriaID = p.CategoriaID,
+                    CategoriaNome = p.CategoriaPai.Nome
+                }).ToListAsync();
+
+            if (produtos.Count == 0)
+            {
+                return NotFound("Não há produtos atualmente em estoque.");
+            }
+
+            return Ok(produtos);
         }
 
         /// <summary>
@@ -134,8 +222,24 @@ namespace ProdutosAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult> GetProdutosEsgotados()
         {
-            List<Produto> produtos = await _context.Produtos.ToListAsync();
-            return Ok(produtos.Where(prod => prod.Quantidade == 0));
+            List<ProdutoDTO_GET> produtos = await _context.Produtos.Include(p => p.CategoriaPai).
+                Where(prod => prod.Quantidade == 0).
+                Select(p => new ProdutoDTO_GET()
+                {
+                    Id = p.Id,
+                    Nome = p.Nome,
+                    Preco = p.Preco,
+                    Quantidade = p.Quantidade,
+                    CategoriaID = p.CategoriaID,
+                    CategoriaNome = p.CategoriaPai.Nome
+                }).ToListAsync();
+
+            if (produtos.Count == 0)
+            {
+                return NotFound("Não há produtos atualmente esgotados.");
+            }
+
+            return Ok(produtos);
         }
 
         /// <summary>
@@ -162,6 +266,10 @@ namespace ProdutosAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> PostProduto(ProdutoDTO_POST produtoDTO)
         {
+            if (produtoDTO == null)
+            {
+                return BadRequest("O produto fornecido não possui todos os dados necessários.");
+            }
             if (produtoDTO.Preco < 0)
             {
                 return BadRequest("O preço deve ser um valor positivo, ou zero.");
@@ -170,9 +278,14 @@ namespace ProdutosAPI.Controllers
             {
                 return BadRequest("A quantidade deve ser um valor positivo, ou zero.");
             }
+            if (_context.Categorias.Find(produtoDTO.CategoriaID) == null)
+            {
+                return NotFound("A categoria com id " + produtoDTO.CategoriaID + " não existe. " +
+                    "A categoria deve ser cadastrada antes que possa ter produtos.");
+            }
 
             Produto produto = new Produto()
-            { Nome = produtoDTO.Nome, Preco = produtoDTO.Preco, Quantidade = produtoDTO.Quantidade };
+            { Nome = produtoDTO.Nome, Preco = produtoDTO.Preco, Quantidade = produtoDTO.Quantidade, CategoriaID = produtoDTO.CategoriaID };
 
             _context.Produtos.Add(produto);
             await _context.SaveChangesAsync();
@@ -205,6 +318,10 @@ namespace ProdutosAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> PutProduto(int id, ProdutoDTO_POST produtoDTO)
         {
+            if (produtoDTO == null)
+            {
+                return BadRequest("O produto fornecido não possui todos os dados necessários.");
+            }
             if (produtoDTO.Preco < 0)
             {
                 return BadRequest("O preço deve ser um valor positivo, ou zero.");
@@ -212,6 +329,11 @@ namespace ProdutosAPI.Controllers
             if (produtoDTO.Quantidade < 0)
             {
                 return BadRequest("A quantidade deve ser um valor positivo, ou zero.");
+            }
+            if (_context.Categorias.Find(produtoDTO.CategoriaID) == null)
+            {
+                return NotFound("A categoria com id " + produtoDTO.CategoriaID + " não existe. " +
+                    "A categoria deve ser cadastrada antes que possa ter produtos.");
             }
 
             Produto produtoToChange = await _context.Produtos.FindAsync(id);
@@ -221,15 +343,10 @@ namespace ProdutosAPI.Controllers
                 return NotFound("O produto com id " + id + " não existe.");
             }
 
-            if (produtoDTO == null)
-            {
-                return NotFound("O produto fornecido não possui todos os dados necessários.");
-            }
-
             produtoToChange.Nome = produtoDTO.Nome;
-            produtoToChange.CategoriaID = produtoDTO.CategoriaID;
             produtoToChange.Preco = produtoDTO.Preco;
             produtoToChange.Quantidade = produtoDTO.Quantidade;
+            produtoToChange.CategoriaID = produtoDTO.CategoriaID;
 
             _context.Entry(produtoToChange).State = EntityState.Modified;
             await _context.SaveChangesAsync();
