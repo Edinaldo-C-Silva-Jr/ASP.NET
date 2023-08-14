@@ -20,12 +20,6 @@ namespace ProdutosAPI.Models
         public string Nome { get; set; } = string.Empty;
 
         /// <summary>
-        /// O nome da categoria à qual o produto pertence.
-        /// </summary>
-        [Required]
-        public string Categoria { get; set; } = string.Empty;
-
-        /// <summary>
         /// O valor em reais do produto.
         /// </summary>
         [Required]
@@ -36,5 +30,14 @@ namespace ProdutosAPI.Models
         /// </summary>
         [Required]
         public int Quantidade { get; set; }
+
+        /// <summary>
+        /// O número de identificação da categoria à qual o produto pertence.
+        /// Foreign Key.
+        /// </summary>
+        [Required]
+        public int CategoriaID { get; set; }
+
+        public Categoria CategoriaPai { get; set; }
     }
 }
