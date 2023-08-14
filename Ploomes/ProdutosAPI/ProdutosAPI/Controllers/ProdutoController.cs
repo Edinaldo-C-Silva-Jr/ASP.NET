@@ -48,7 +48,7 @@ namespace ProdutosAPI.Controllers
 
             if (produto == null)
             {
-                return NotFound("O produto com id" + id + "não existe.");
+                return NotFound("O produto com id " + id + " não existe.");
             }
 
             return Ok(produto);
@@ -218,7 +218,7 @@ namespace ProdutosAPI.Controllers
 
             if (produtoToChange == null)
             {
-                return NotFound("O produto com id" + id + "não existe.");
+                return NotFound("O produto com id " + id + " não existe.");
             }
 
             if (produtoDTO == null)
@@ -227,7 +227,7 @@ namespace ProdutosAPI.Controllers
             }
 
             produtoToChange.Nome = produtoDTO.Nome;
-            //produtoToChange.Categoria = produtoDTO.Categoria;
+            produtoToChange.CategoriaID = produtoDTO.CategoriaID;
             produtoToChange.Preco = produtoDTO.Preco;
             produtoToChange.Quantidade = produtoDTO.Quantidade;
 
@@ -251,7 +251,7 @@ namespace ProdutosAPI.Controllers
 
             if (produto == null)
             {
-                return NotFound("O produto com id" + id + "não existe.");
+                return NotFound("O produto com id " + id + " não existe.");
             }
 
             _context.Produtos.Remove(produto);
